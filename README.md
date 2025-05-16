@@ -1,2 +1,75 @@
-# FastAPI-library-API-CRUD-example
-This repo is dedicated to build library API CRUD using FastAPI
+# FastAPI Library API CRUD Example
+
+A simple REST API for managing a library's book collection built with FastAPI.
+
+For more information about FastAPI, visit the [official documentation](https://fastapi.tiangolo.com/#create-it).
+
+## Project Structure
+
+```
+library_api/
+├── crud.py         # CRUD operations implementation
+├── database.py     # Database simulation (using list)
+├── main.py         # FastAPI application and routes
+└── models.py       # Pydantic models for data validation
+```
+
+## Setup and Installation
+
+1. Create a virtual environment:
+
+```bash
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the application:
+
+```bash
+fastapi dev main.py --port 8001
+```
+
+The API will be available at `http://127.0.0.1:8001/`
+
+## API Endpoints
+
+| Method | Endpoint           | Description               |
+| ------ | ------------------ | ------------------------- |
+| POST   | `/books/`          | Create a new book         |
+| GET    | `/books/`          | Get all books             |
+| GET    | `/books/{book_id}` | Get a specific book by ID |
+| PUT    | `/books/{book_id}` | Update a book             |
+| DELETE | `/books/{book_id}` | Delete a book             |
+
+## Data Model
+
+Book structure:
+
+```json
+{
+    "id": int,
+    "title": string,
+    "author": string,
+    "published_year": int
+}
+```
+
+## API Documentation
+
+Once the server is running, you can access:
+
+- Interactive API documentation (Swagger UI) at `http://127.0.0.1:8001/docs`
+- Alternative API documentation (ReDoc) at `http://127.0.0.1:8001/redoc`
+
+## Requirements
+
+- Python 3.6+
+- FastAPI[standard]
+- Uvicorn
+- Pydantic
