@@ -1,46 +1,47 @@
-from models import Book, BookCreate
-from database import books
+from sqlalchemy.orm import Session
+from models import BookDB, BookCreate, Book
 
-def create_book(book_item: BookCreate) -> Book:
+def create_book(db: Session, book_item: BookCreate) -> Book:
     """
     Create a new book and add it to the database.
     """
-    new_id = books[-1].id + 1 if books else 1
-    new_book = Book(id=new_id, **book_item.dict())
-    books.append(new_book)
-    return new_book
+    db_book = BookDB(**book_item.dict())
+    db.add(db_book)
+    db.commit()
+    db.refresh(db_book)
+    return db_book
 
-def get_all_books() -> list[Book]:
+def get_all_books(db: Session) -> list[Book]:
     """
     Retrieve all books from the database.
     """
-    return books
+    return db.query(BookDB).all()
 
-def get_book_by_id(book_id: int) -> Book | None:
+def get_book_by_id(db: Session, book_id: int) -> Book | None:
     """
     Retrieve a book by its ID.
     """
-    for book in books:
-        if book.id == book_id:
-            return book
-    return None
+    return db.query(BookDB).filter(BookDB.id == book_id).first()
 
-def update_book(book_id: int, book_item: BookCreate) -> Book | None:
+def update_book(db: Session, book_id: int, book_item: BookCreate) -> Book | None:
     """
     Update an existing book in the database.
     """
-    for index, book in enumerate(books):
-        if book.id == book_id:
-            updated_book = Book(id=book_id, **book_item.dict())
-            books[index] = updated_book
-            return updated_book
-    return None
+    db_book = db.query(BookDB).filter(BookDB.id == book_id).first()
+    if db_book:
+        for key, value in book_item.dict().items():
+            setattr(db_book, key, value)
+        db.commit()
+        db.refresh(db_book)
+    return db_book
 
-def delete_book(book_id: int) -> Book:
+def delete_book(db: Session, book_id: int) -> bool:
     """
     Delete a book from the database.
     """
-    for index, book in enumerate(books):
-        if book.id == book_id:
-            return books.pop(index)
+    db_book = db.query(BookDB).filter(BookDB.id == book_id).first()
+    if db_book:
+        db.delete(db_book)
+        db.commit()
+        return True
     return False
