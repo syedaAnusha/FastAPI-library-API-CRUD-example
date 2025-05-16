@@ -8,10 +8,11 @@ For more information about FastAPI, visit the [official documentation](https://f
 
 ```
 library_api/
-├── crud.py         # CRUD operations implementation
-├── database.py     # Database simulation (using list)
+├── crud.py         # CRUD operations with SQLAlchemy
+├── database.py     # SQLite database configuration
+├── library.db      # SQLite database file
 ├── main.py         # FastAPI application and routes
-└── models.py       # Pydantic models for data validation
+└── models.py       # SQLAlchemy and Pydantic models
 ```
 
 ## Setup and Installation
@@ -80,3 +81,5 @@ Once the server is running, you can access:
 - FastAPI[standard]
 - Uvicorn
 - Pydantic
+- SQLAlchemy
+- SQLModel
