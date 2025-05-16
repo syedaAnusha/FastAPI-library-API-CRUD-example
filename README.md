@@ -16,7 +16,14 @@ library_api/
 
 ## Setup and Installation
 
-1. Create a virtual environment:
+1. Clone this repository:
+
+```bash
+git clone https://github.com/syedaAnusha/FastAPI-library-API-CRUD-example.git
+cd FastAPI-library-API-CRUD-example
+```
+
+2. Create a virtual environment:
 
 ```bash
 python -m venv venv
