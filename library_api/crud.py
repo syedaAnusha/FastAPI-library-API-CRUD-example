@@ -5,7 +5,8 @@ def create_book(book_item: BookCreate) -> Book:
     """
     Create a new book and add it to the database.
     """
-    new_book = Book(id=len(books) + 1, **book_item.dict())
+    new_id = books[-1].id + 1 if books else 1
+    new_book = Book(id=new_id, **book_item.dict())
     books.append(new_book)
     return new_book
 
