@@ -1,10 +1,25 @@
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from models import Book, BookCreate
 import crud
 from database import engine, Base, get_db
+from middleware import logging_middleware
 
-app = FastAPI()
+app = FastAPI(title="Library API",
+             description="A simple REST API for managing a library's book collection")
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend URL (Next.js default port)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+# Add custom logging middleware
+app.middleware("http")(logging_middleware)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)

@@ -4,6 +4,14 @@ A simple REST API for managing a library's book collection built with FastAPI.
 
 For more information about FastAPI, visit the [official documentation](https://fastapi.tiangolo.com/#create-it).
 
+## Features
+
+- CRUD operations for managing books
+- SQLite database with SQLAlchemy ORM
+- CORS support for frontend integration
+- Request logging and timing middleware
+- Swagger UI documentation
+
 ## Project Structure
 
 ```
@@ -12,6 +20,7 @@ library_api/
 ├── database.py     # SQLite database configuration
 ├── library.db      # SQLite database file
 ├── main.py         # FastAPI application and routes
+├── middleware.py   # Custom middleware implementations
 └── models.py       # SQLAlchemy and Pydantic models
 ```
 
