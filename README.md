@@ -29,9 +29,10 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-3. Run the application:
+3. Navigate to the library_api directory and run the application:
 
 ```bash
+cd library_api
 fastapi dev main.py --port 8001
 ```
 
