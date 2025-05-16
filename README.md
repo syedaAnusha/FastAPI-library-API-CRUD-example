@@ -20,7 +20,6 @@ library_api/
 
 ```bash
 git clone https://github.com/syedaAnusha/FastAPI-library-API-CRUD-example.git
-cd FastAPI-library-API-CRUD-example
 ```
 
 2. Create a virtual environment:
