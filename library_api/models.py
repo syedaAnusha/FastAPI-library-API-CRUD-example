@@ -10,6 +10,9 @@ class BookDB(Base):
     title = Column(String, index=True)
     author = Column(String, index=True)
     published_year = Column(Integer)
+    category = Column(String, index=True)
+    description = Column(String)
+    coverImage = Column(String)
 
 # Pydantic Models for API
 
@@ -18,6 +21,9 @@ class BookBase(BaseModel):
     title: str
     author: str
     published_year: int
+    category: str
+    description: str
+    coverImage: str
 
 # BookCreate is used specifically for input validation when creating 
 # new books (it doesn't include an ID since it hasn't been created yet)

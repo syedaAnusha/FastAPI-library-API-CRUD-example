@@ -1,7 +1,9 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from typing import Optional, Tuple
+from pydantic import BaseModel
 from models import Book, BookCreate
 import crud
 from database import engine, Base, get_db
@@ -43,7 +45,10 @@ async def root():
                 "create_book": "POST /books/",
                 "get_book": "GET /books/{book_id}",
                 "update_book": "PUT /books/{book_id}",
-                "delete_book": "DELETE /books/{book_id}"
+                "delete_book": "DELETE /books/{book_id}",
+                "sort_books": "GET /books/sort/{sort_by}",
+                "books_by_category": "GET /books/category/{category}",
+                "search_books": "GET /books/search/"
             }
         }
     })
@@ -91,3 +96,46 @@ def delete_book(book_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Book not found")
     return {"message": "Book deleted successfully"}
+
+class CategoryResponse(BaseModel):
+    books: list[Book]
+    total: int
+
+@app.get("/books/sort/{sort_by}")
+def get_sorted_books(
+    sort_by: str,
+    desc: bool = Query(False, description="Sort in descending order"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get books sorted by specified field (year, author, or title)
+    """
+    try:
+        return crud.get_sorted_books(db, sort_by, desc)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/books/category/{category}", response_model=CategoryResponse)
+def get_books_by_category(category: str, db: Session = Depends(get_db)):
+    """
+    Get all books in a specific category and their count
+    """
+    books, count = crud.get_books_by_category(db, category)
+    return CategoryResponse(books=books, total=count)
+
+@app.get("/books/search/")
+def search_books(
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    year: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Search books by title, author, or year
+    """
+    if not any([title, author, year]):
+        raise HTTPException(
+            status_code=400,
+            detail="At least one search parameter (title, author, or year) must be provided"
+        )
+    return crud.search_books(db, title, author, year)
