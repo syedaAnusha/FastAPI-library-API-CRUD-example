@@ -34,6 +34,12 @@ async def logging_middleware(request: Request, call_next: Callable):
     )
     
     # Add processing time header to response
+
+    # It's particularly useful for:
+    # Monitoring API performance
+    # Debugging issues
+    # Tracking API usage
+    # Performance optimization
     response.headers["X-Process-Time"] = str(process_time)
     
     return response
