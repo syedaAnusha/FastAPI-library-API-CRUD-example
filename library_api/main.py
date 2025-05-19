@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from models import Book, BookCreate
 import crud
@@ -12,7 +13,10 @@ app = FastAPI(title="Library API",
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL (Next.js default port)
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ],  # Allow both localhost and 127.0.0.1
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
@@ -23,6 +27,26 @@ app.middleware("http")(logging_middleware)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+@app.get("/")
+async def root():
+    """
+    Root endpoint that provides API information and available endpoints
+    """
+    return JSONResponse({
+        "message": "Welcome to the Library API",
+        "version": "1.0.0",
+        "documentation": "/docs",
+        "endpoints": {
+            "books": {
+                "list_books": "GET /books/",
+                "create_book": "POST /books/",
+                "get_book": "GET /books/{book_id}",
+                "update_book": "PUT /books/{book_id}",
+                "delete_book": "DELETE /books/{book_id}"
+            }
+        }
+    })
 
 @app.post("/books/", response_model=Book)
 def create_book(book_item: BookCreate, db: Session = Depends(get_db)):
