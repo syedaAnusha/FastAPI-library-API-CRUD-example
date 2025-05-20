@@ -1,12 +1,10 @@
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from pydantic import BaseModel
 from models import Book, BookCreate
 import crud
-from database import engine, Base, get_db
 from middleware import logging_middleware
 
 app = FastAPI(title="Library API",
@@ -26,9 +24,6 @@ app.add_middleware(
 
 # Add custom logging middleware
 app.middleware("http")(logging_middleware)
-
-# Create database tables
-Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 async def root():
@@ -54,81 +49,79 @@ async def root():
     })
 
 @app.post("/books/", response_model=Book)
-def create_book(book_item: BookCreate, db: Session = Depends(get_db)):
+def create_book(book_item: BookCreate):
     """
     Create a new book and add it to the database.
     """
-    return crud.create_book(db, book_item)
+    return crud.create_book(book_item)
 
-@app.get("/books/", response_model=list[Book])
-def read_books(db: Session = Depends(get_db)):
+@app.get("/books/", response_model=List[Book])
+def read_books():
     """
     Retrieve all books from the database.
     """
-    return crud.get_all_books(db)
+    return crud.get_all_books()
 
 @app.get("/books/{book_id}", response_model=Book)
-def read_book(book_id: int, db: Session = Depends(get_db)):
+def read_book(book_id: int):
     """
     Retrieve a book by its ID.
     """
-    book = crud.get_book_by_id(db, book_id)
+    book = crud.get_book_by_id(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
 @app.put("/books/{book_id}", response_model=Book)
-def update_book(book_id: int, book_item: BookCreate, db: Session = Depends(get_db)):
+def update_book(book_id: int, book_item: BookCreate):
     """
     Update an existing book.
     """
-    book = crud.update_book(db, book_id, book_item)
+    book = crud.update_book(book_id, book_item)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
 @app.delete("/books/{book_id}")
-def delete_book(book_id: int, db: Session = Depends(get_db)):
+def delete_book(book_id: int):
     """
     Delete a book.
     """
-    success = crud.delete_book(db, book_id)
+    success = crud.delete_book(book_id)
     if not success:
         raise HTTPException(status_code=404, detail="Book not found")
     return {"message": "Book deleted successfully"}
 
 class CategoryResponse(BaseModel):
-    books: list[Book]
+    books: List[Book]
     total: int
 
 @app.get("/books/sort/{sort_by}")
 def get_sorted_books(
     sort_by: str,
-    desc: bool = Query(False, description="Sort in descending order"),
-    db: Session = Depends(get_db)
+    desc: bool = Query(False, description="Sort in descending order")
 ):
     """
     Get books sorted by specified field (year, author, or title)
     """
     try:
-        return crud.get_sorted_books(db, sort_by, desc)
+        return crud.get_sorted_books(sort_by, desc)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/books/category/{category}", response_model=CategoryResponse)
-def get_books_by_category(category: str, db: Session = Depends(get_db)):
+def get_books_by_category(category: str):
     """
     Get all books in a specific category and their count
     """
-    books, count = crud.get_books_by_category(db, category)
+    books, count = crud.get_books_by_category(category)
     return CategoryResponse(books=books, total=count)
 
 @app.get("/books/search/")
 def search_books(
     title: Optional[str] = None,
     author: Optional[str] = None,
-    year: Optional[int] = None,
-    db: Session = Depends(get_db)
+    year: Optional[int] = None
 ):
     """
     Search books by title, author, or year
@@ -138,4 +131,4 @@ def search_books(
             status_code=400,
             detail="At least one search parameter (title, author, or year) must be provided"
         )
-    return crud.search_books(db, title, author, year)
+    return crud.search_books(title, author, year)

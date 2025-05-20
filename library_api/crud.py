@@ -1,100 +1,93 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
-from typing import Optional, Tuple
-from models import BookDB, BookCreate, Book
+from typing import Optional, Tuple, List
+from models import BookCreate, Book
+from database import supabase
 
-def create_book(db: Session, book_item: BookCreate) -> Book:
+def create_book(book_item: BookCreate) -> Book:
     """
     Create a new book and add it to the database.
     """
-    db_book = BookDB(**book_item.dict())
-    db.add(db_book)
-    db.commit()
-    db.refresh(db_book)
-    return db_book
+    data = dict(book_item)
+    result = supabase.table('books').insert(data).execute()
+    return Book(**result.data[0])
 
-def get_all_books(db: Session) -> list[Book]:
+def get_all_books() -> List[Book]:
     """
     Retrieve all books from the database.
     """
-    return db.query(BookDB).all()
+    result = supabase.table('books').select('*').execute()
+    return [Book(**book) for book in result.data]
 
-def get_book_by_id(db: Session, book_id: int) -> Book | None:
+def get_book_by_id(book_id: int) -> Book | None:
     """
     Retrieve a book by its ID.
     """
-    return db.query(BookDB).filter(BookDB.id == book_id).first()
+    result = supabase.table('books').select('*').eq('id', book_id).execute()
+    return Book(**result.data[0]) if result.data else None
 
-def update_book(db: Session, book_id: int, book_item: BookCreate) -> Book | None:
+def update_book(book_id: int, book_item: BookCreate) -> Book | None:
     """
     Update an existing book in the database.
     """
-    db_book = db.query(BookDB).filter(BookDB.id == book_id).first()
-    if db_book:
-        for key, value in book_item.dict().items():
-            setattr(db_book, key, value)
-        db.commit()
-        db.refresh(db_book)
-    return db_book
+    data = dict(book_item)
+    result = supabase.table('books').update(data).eq('id', book_id).execute()
+    return Book(**result.data[0]) if result.data else None
 
-def delete_book(db: Session, book_id: int) -> bool:
+def delete_book(book_id: int) -> bool:
     """
     Delete a book from the database.
     """
-    db_book = db.query(BookDB).filter(BookDB.id == book_id).first()
-    if db_book:
-        db.delete(db_book)
-        db.commit()
-        return True
-    return False
+    result = supabase.table('books').delete().eq('id', book_id).execute()
+    return bool(result.data)
 
-def get_sorted_books(db: Session, sort_by: str, desc_order: bool = False) -> list[Book]:
+def get_sorted_books(sort_by: str, desc_order: bool = False) -> List[Book]:
     """
     Get all books sorted by the specified field.
     sort_by can be 'year', 'author', or 'title'
     """
     valid_sort_fields = {
-        'year': BookDB.published_year,
-        'author': BookDB.author,
-        'title': BookDB.title
+        'year': 'published_year',
+        'author': 'author',
+        'title': 'title'
     }
     
     if sort_by not in valid_sort_fields:
         raise ValueError(f"Invalid sort field. Must be one of: {', '.join(valid_sort_fields.keys())}")
     
-    query = db.query(BookDB)
-    if desc_order:
-        query = query.order_by(desc(valid_sort_fields[sort_by]))
-    else:
-        query = query.order_by(valid_sort_fields[sort_by])
+    query = supabase.table('books').select('*')
+    order = valid_sort_fields[sort_by]
     
-    return query.all()
+    if desc_order:
+        query = query.order(order, desc=True)
+    else:
+        query = query.order(order)
+        
+    result = query.execute()
+    return [Book(**book) for book in result.data]
 
-def get_books_by_category(db: Session, category: str) -> Tuple[list[Book], int]:
+def get_books_by_category(category: str) -> Tuple[List[Book], int]:
     """
     Get all books in a specific category and return them along with the count
     """
-    query = db.query(BookDB).filter(BookDB.category == category)
-    books = query.all()
-    count = query.count()
-    return books, count
+    result = supabase.table('books').select('*').eq('category', category).execute()
+    books = [Book(**book) for book in result.data]
+    return books, len(books)
 
 def search_books(
-    db: Session,
     title: Optional[str] = None,
     author: Optional[str] = None,
     year: Optional[int] = None
-) -> list[Book]:
+) -> List[Book]:
     """
     Search books by title, author, or year
     """
-    query = db.query(BookDB)
+    query = supabase.table('books').select('*')
     
     if title:
-        query = query.filter(BookDB.title.ilike(f"%{title}%"))
+        query = query.ilike('title', f'%{title}%')
     if author:
-        query = query.filter(BookDB.author.ilike(f"%{author}%"))
+        query = query.ilike('author', f'%{author}%')
     if year:
-        query = query.filter(BookDB.published_year == year)
+        query = query.eq('published_year', year)
     
-    return query.all()
+    result = query.execute()
+    return [Book(**book) for book in result.data]

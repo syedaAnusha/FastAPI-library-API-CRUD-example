@@ -1,18 +1,5 @@
-from sqlalchemy import Column, Integer, String
 from pydantic import BaseModel
-from database import Base
-
-# SQLAlchemy Model
-class BookDB(Base):
-    __tablename__ = "books"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    author = Column(String, index=True)
-    published_year = Column(Integer)
-    category = Column(String, index=True)
-    description = Column(String)
-    coverImage = Column(String)
+from typing import Optional
 
 # Pydantic Models for API
 
@@ -23,7 +10,7 @@ class BookBase(BaseModel):
     published_year: int
     category: str
     description: str
-    coverImage: str
+    cover_image: str
 
 # BookCreate is used specifically for input validation when creating 
 # new books (it doesn't include an ID since it hasn't been created yet)

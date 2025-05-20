@@ -7,7 +7,7 @@ For more information about FastAPI, visit the [official documentation](https://f
 ## Features
 
 - CRUD operations for managing books
-- SQLite database with SQLAlchemy ORM
+- Supabase PostgreSQL database integration
 - CORS support for frontend integration
 - Request logging and timing middleware
 - Swagger UI documentation
@@ -16,12 +16,11 @@ For more information about FastAPI, visit the [official documentation](https://f
 
 ```
 library_api/
-├── crud.py         # CRUD operations with SQLAlchemy
-├── database.py     # SQLite database configuration
-├── library.db      # SQLite database file
+├── crud.py         # CRUD operations with Supabase
+├── database.py     # Supabase client configuration
 ├── main.py         # FastAPI application and routes
 ├── middleware.py   # Custom middleware implementations
-└── models.py       # SQLAlchemy and Pydantic models
+└── models.py       # Pydantic models for data validation
 ```
 
 ## Setup and Installation
@@ -32,20 +31,27 @@ library_api/
 git clone https://github.com/syedaAnusha/FastAPI-library-API-CRUD-example.git
 ```
 
-2. Create a virtual environment:
+2. Create a virtual environment and activate it:
 
 ```bash
 python -m venv venv
 .\venv\Scripts\activate  # Windows
 ```
 
-2. Install dependencies:
+3. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Navigate to the library_api directory and run the application:
+4. Set up your environment variables in a `.env` file:
+
+```env
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
+```
+
+5. Navigate to the library_api directory and run the application:
 
 ```bash
 cd library_api
@@ -73,7 +79,10 @@ Book structure:
     "id": int,
     "title": string,
     "author": string,
-    "published_year": int
+    "published_year": int,
+    "category": str,
+    "description": str,
+    "cover_image": str,
 }
 ```
 
@@ -92,3 +101,6 @@ Once the server is running, you can access:
 - Pydantic
 - SQLAlchemy
 - SQLModel
+- psycopg2-binary
+- python-dotenv
+- supabase
