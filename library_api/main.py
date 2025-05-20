@@ -3,9 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional, Tuple, List
 from pydantic import BaseModel
-from models import Book, BookCreate
-import crud
-from middleware import logging_middleware
+from .models import Book, BookCreate
+from .crud import create_book, get_all_books, get_book_by_id, update_book, delete_book, get_sorted_books, get_books_by_category, search_books
+from .middleware import logging_middleware
 import os
 
 app = FastAPI(title="Library API",
@@ -51,45 +51,45 @@ async def root():
     })
 
 @app.post("/books/", response_model=Book)
-def create_book(book_item: BookCreate):
+def create_book_endpoint(book_item: BookCreate):
     """
     Create a new book and add it to the database.
     """
-    return crud.create_book(book_item)
+    return create_book(book_item)
 
 @app.get("/books/", response_model=List[Book])
 def read_books():
     """
     Retrieve all books from the database.
     """
-    return crud.get_all_books()
+    return get_all_books()
 
 @app.get("/books/{book_id}", response_model=Book)
 def read_book(book_id: int):
     """
     Retrieve a book by its ID.
     """
-    book = crud.get_book_by_id(book_id)
+    book = get_book_by_id(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
 @app.put("/books/{book_id}", response_model=Book)
-def update_book(book_id: int, book_item: BookCreate):
+def update_book_endpoint(book_id: int, book_item: BookCreate):
     """
     Update an existing book.
     """
-    book = crud.update_book(book_id, book_item)
+    book = update_book(book_id, book_item)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
     return book
 
 @app.delete("/books/{book_id}")
-def delete_book(book_id: int):
+def delete_book_endpoint(book_id: int):
     """
     Delete a book.
     """
-    success = crud.delete_book(book_id)
+    success = delete_book(book_id)
     if not success:
         raise HTTPException(status_code=404, detail="Book not found")
     return {"message": "Book deleted successfully"}
@@ -99,7 +99,7 @@ class CategoryResponse(BaseModel):
     total: int
 
 @app.get("/books/sort/{sort_by}")
-def get_sorted_books(
+def get_sorted_books_endpoint(
     sort_by: str,
     desc: bool = Query(False, description="Sort in descending order")
 ):
@@ -107,21 +107,21 @@ def get_sorted_books(
     Get books sorted by specified field (year, author, or title)
     """
     try:
-        return crud.get_sorted_books(sort_by, desc)
+        return get_sorted_books(sort_by, desc)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/books/category/{category}", response_model=CategoryResponse)
-def get_books_by_category(category: str):
+def get_books_by_category_endpoint(category: str):
     """
     Get all books in a specific category and their count
     """
-    books, count = crud.get_books_by_category(category)
+    books, count = get_books_by_category(category)
     return CategoryResponse(books=books, total=count)
 
 @app.get("/books/search/{title}")
-def search_books(title: str):
+def search_books_endpoint(title: str):
     """
     Search books by title
     """
-    return crud.search_books(title)
+    return search_books(title)

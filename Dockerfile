@@ -10,8 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Set environment variables
+ENV PYTHONPATH=/app
 ENV PORT=8001
 ENV HOST=0.0.0.0
 
 # Command to run the application
-CMD cd library_api && fastapi dev main.py --port ${PORT} --host ${HOST}
+CMD ["fastapi", "dev", "main.py", "--port", "8001", "--host", "0.0.0.0"]
