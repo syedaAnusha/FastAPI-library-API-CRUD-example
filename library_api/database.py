@@ -1,18 +1,21 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
+from supabase import create_client, Client
+
+load_dotenv()  # Load from .env
+
+url: str = os.getenv("SUPABASE_URL")
+key: str = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
 
 # Create SQLite database URL
-SQLALCHEMY_DATABASE_URL = "sqlite:///./library.db"
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Create SQLAlchemy engine
-
-# The `check_same_thread=False` argument is SQLite-specific and allows the 
-# database to be accessed from multiple threads, which is necessary for 
-# FastAPI's async operation.
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# Create SQLAlchemy engine for PostgreSQL
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
