@@ -62,13 +62,16 @@ The API will be available at `http://127.0.0.1:8001/`
 
 ## API Endpoints
 
-| Method | Endpoint           | Description               |
-| ------ | ------------------ | ------------------------- |
-| POST   | `/books/`          | Create a new book         |
-| GET    | `/books/`          | Get all books             |
-| GET    | `/books/{book_id}` | Get a specific book by ID |
-| PUT    | `/books/{book_id}` | Update a book             |
-| DELETE | `/books/{book_id}` | Delete a book             |
+| Method | Endpoint                     | Description                                        |
+| ------ | ---------------------------- | -------------------------------------------------- |
+| POST   | `/books/`                    | Create a new book                                  |
+| GET    | `/books/`                    | Get all books                                      |
+| GET    | `/books/{book_id}`           | Get a specific book by ID                          |
+| PUT    | `/books/{book_id}`           | Update a book                                      |
+| DELETE | `/books/{book_id}`           | Delete a book                                      |
+| GET    | `/books/sort/{sort_by}`      | Get books sorted by field (year, author, or title) |
+| GET    | `/books/category/{category}` | Get all books in a specific category               |
+| GET    | `/books/search/{title}`      | Search books by title                              |
 
 ## Data Model
 
