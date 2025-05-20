@@ -72,22 +72,9 @@ def get_books_by_category(category: str) -> Tuple[List[Book], int]:
     books = [Book(**book) for book in result.data]
     return books, len(books)
 
-def search_books(
-    title: Optional[str] = None,
-    author: Optional[str] = None,
-    year: Optional[int] = None
-) -> List[Book]:
+def search_books(title: str) -> List[Book]:
     """
-    Search books by title, author, or year
+    Search books by title
     """
-    query = supabase.table('books').select('*')
-    
-    if title:
-        query = query.ilike('title', f'%{title}%')
-    if author:
-        query = query.ilike('author', f'%{author}%')
-    if year:
-        query = query.eq('published_year', year)
-    
-    result = query.execute()
+    result = supabase.table('books').select('*').ilike('title', f'%{title}%').execute()
     return [Book(**book) for book in result.data]

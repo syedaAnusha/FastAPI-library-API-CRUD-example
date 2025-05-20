@@ -117,18 +117,9 @@ def get_books_by_category(category: str):
     books, count = crud.get_books_by_category(category)
     return CategoryResponse(books=books, total=count)
 
-@app.get("/books/search/")
-def search_books(
-    title: Optional[str] = None,
-    author: Optional[str] = None,
-    year: Optional[int] = None
-):
+@app.get("/books/search/{title}")
+def search_books(title: str):
     """
-    Search books by title, author, or year
+    Search books by title
     """
-    if not any([title, author, year]):
-        raise HTTPException(
-            status_code=400,
-            detail="At least one search parameter (title, author, or year) must be provided"
-        )
-    return crud.search_books(title, author, year)
+    return crud.search_books(title)
