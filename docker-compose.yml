@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - .:/app
+    restart: unless-stopped

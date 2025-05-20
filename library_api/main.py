@@ -6,17 +6,19 @@ from pydantic import BaseModel
 from models import Book, BookCreate
 import crud
 from middleware import logging_middleware
+import os
 
 app = FastAPI(title="Library API",
              description="A simple REST API for managing a library's book collection")
 
 # Configure CORS
+# Get frontend URLs from environment variables
+frontend_urls = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+origins = [url.strip() for url in frontend_urls if url.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ],  # Allow both localhost and 127.0.0.1
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
