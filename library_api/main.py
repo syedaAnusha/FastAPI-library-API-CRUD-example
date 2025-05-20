@@ -13,12 +13,11 @@ app = FastAPI(title="Library API",
 
 # Configure CORS
 # Get frontend URLs from environment variables
-frontend_urls = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
-origins = [url.strip() for url in frontend_urls if url.strip()]
+frontend_urls = os.getenv("ALLOWED_ORIGINS")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=frontend_urls,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
