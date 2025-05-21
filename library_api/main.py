@@ -32,6 +32,9 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
+    expose_headers=["*"],  # Expose all headers
+    max_age=600,  # Cache preflight requests for 10 minutes
+    allow_origin_regex=None  # Optional: Add if you need dynamic origin matching
 )
 
 # Add custom logging middleware
