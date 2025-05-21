@@ -24,33 +24,22 @@ app = FastAPI(title="Library API",
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Custom middleware to handle HTTPS redirects
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import RedirectResponse
-
-class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        if IS_PRODUCTION and request.url.scheme == "http":
-            url = str(request.url.replace(scheme="https"))
-            return RedirectResponse(url, status_code=308)
-        return await call_next(request)
-
-# Add HTTPS redirect middleware in production
-if IS_PRODUCTION:
-    app.add_middleware(HTTPSRedirectMiddleware)
+# Since Railway handles HTTPS, we don't need custom HTTPS redirect middleware
+# Just configure CORS properly
 
 # Configure CORS
 FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
 origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 
-# Add CORS middleware with specific configuration
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_origin_regex="https?://.*",  # Allow any origin that starts with http or https
+    allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
+    expose_headers=["Content-Type", "Authorization"],
     max_age=86400,
 )
 
