@@ -22,20 +22,26 @@ app = FastAPI(title="Library API",
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Configure CORS
-# Get frontend URLs from environment variables
+# Configure CORS and Security
+# Get frontend URLs from environment variables or use default
 FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
 origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 
 # Add CORS middleware with specific configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Set to False when allow_origins=["*"]
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["Content-Type", "Authorization"],
-    max_age=86400,  # Cache preflight requests for 24 hours
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "Accept",
+        "Origin",
+        "X-Requested-With"
+    ],
+    expose_headers=["*"],
+    max_age=86400,
 )
 
 # Add custom logging middleware
