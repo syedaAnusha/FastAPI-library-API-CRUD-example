@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from .models import Book, BookCreate, PaginatedResponse, CategoryResponse
 from .crud import create_book, get_all_books, get_book_by_id, update_book, delete_book, get_sorted_books, get_books_by_category, search_books
 from .middleware import logging_middleware
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -26,11 +27,14 @@ origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 # Since Railway handles HTTPS, we don't need custom HTTPS redirect middleware
 # Just configure CORS properly
 
+# Add before other middlewares
+app.add_middleware(ProxyHeadersMiddleware)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Type", "Authorization"],
