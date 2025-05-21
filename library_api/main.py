@@ -14,9 +14,6 @@ import os
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
-# Check if we're in production
-IS_PRODUCTION = os.getenv("ENVIRONMENT", "development") == "production"
-
 app = FastAPI(title="Library API",
              description="A simple REST API for managing a library's book collection")
 
