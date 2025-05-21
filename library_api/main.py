@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from .models import Book, BookCreate, PaginatedResponse, CategoryResponse
 from .crud import create_book, get_all_books, get_book_by_id, update_book, delete_book, get_sorted_books, get_books_by_category, search_books
 from .middleware import logging_middleware
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -18,6 +17,7 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Library API",
              description="A simple REST API for managing a library's book collection")
 
+
 # Add rate limiter to the application
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -27,8 +27,6 @@ origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 # Since Railway handles HTTPS, we don't need custom HTTPS redirect middleware
 # Just configure CORS properly
 
-# Add before other middlewares
-app.add_middleware(ProxyHeadersMiddleware)
 
 # Configure CORS
 app.add_middleware(
