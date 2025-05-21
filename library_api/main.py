@@ -28,19 +28,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Just configure CORS properly
 
 # Configure CORS
-FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
-origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
-
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["https://read-stack-eight.vercel.app", "http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_origin_regex="https?://.*",  # Allow any origin that starts with http or https
-    allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
-    expose_headers=["Content-Type", "Authorization"],
-    max_age=86400,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Add custom logging middleware
