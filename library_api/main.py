@@ -29,7 +29,7 @@ origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
