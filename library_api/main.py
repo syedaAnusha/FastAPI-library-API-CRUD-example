@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional, Tuple, List
 from pydantic import BaseModel
-from .models import Book, BookCreate
+from .models import Book, BookCreate, PaginatedResponse, CategoryResponse
 from .crud import create_book, get_all_books, get_book_by_id, update_book, delete_book, get_sorted_books, get_books_by_category, search_books
 from .middleware import logging_middleware
 import os
@@ -57,12 +57,16 @@ def create_book_endpoint(book_item: BookCreate):
     """
     return create_book(book_item)
 
-@app.get("/books/", response_model=List[Book])
-def read_books():
+@app.get("/books/", response_model=PaginatedResponse)
+def read_books(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page")
+):
     """
-    Retrieve all books from the database.
+    Retrieve books from the database with pagination.
     """
-    return get_all_books()
+    books, total = get_all_books(page, page_size)
+    return PaginatedResponse(books=books, total=total)
 
 @app.get("/books/{book_id}", response_model=Book)
 def read_book(book_id: int):
@@ -93,10 +97,6 @@ def delete_book_endpoint(book_id: int):
     if not success:
         raise HTTPException(status_code=404, detail="Book not found")
     return {"message": "Book deleted successfully"}
-
-class CategoryResponse(BaseModel):
-    books: List[Book]
-    total: int
 
 @app.get("/books/sort/{sort_by}")
 def get_sorted_books_endpoint(

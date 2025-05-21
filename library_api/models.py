@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 # Pydantic Models for API
 
@@ -25,3 +25,12 @@ class Book(BookBase):
 
     class Config:
         from_attributes = True # Allows conversion from ORM models to Pydantic models
+
+# Response Models for API endpoints
+class PaginatedResponse(BaseModel):
+    books: List[Book]
+    total: int
+
+class CategoryResponse(BaseModel):
+    books: List[Book]
+    total: int

@@ -10,12 +10,27 @@ def create_book(book_item: BookCreate) -> Book:
     result = supabase.table('books').insert(data).execute()
     return Book(**result.data[0])
 
-def get_all_books() -> List[Book]:
+def get_all_books(page: int = 1, page_size: int = 10) -> Tuple[List[Book], int]:
     """
-    Retrieve all books from the database.
+    Retrieve books from the database with pagination.
+    Args:
+        page (int): The page number (default: 1)
+        page_size (int): Number of items per page (default: 10)
+    Returns:
+        Tuple[List[Book], int]: A tuple containing the list of books and total count
     """
-    result = supabase.table('books').select('*').execute()
-    return [Book(**book) for book in result.data]
+    # First get total count
+    count_result = supabase.table('books').select('count', count='exact').execute()
+    total_count = count_result.count if hasattr(count_result, 'count') else 0
+    
+    # Calculate offset
+    offset = (page - 1) * page_size
+    
+    # Get paginated results
+    result = supabase.table('books').select('*').range(offset, offset + page_size - 1).execute()
+    books = [Book(**book) for book in result.data]
+    
+    return books, total_count
 
 def get_book_by_id(book_id: int) -> Book | None:
     """
