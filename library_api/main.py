@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.middleware.cors import CORSMiddleware
+#from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional, Tuple, List
 from pydantic import BaseModel
@@ -18,10 +19,6 @@ app = FastAPI(title="Library API",
              description="A simple REST API for managing a library's book collection")
 
 
-# Add rate limiter to the application
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
 FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
 origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 # Since Railway handles HTTPS, we don't need custom HTTPS redirect middleware
@@ -37,6 +34,10 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["Content-Type", "Authorization"],
 )
+
+# Add rate limiter to the application
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Add custom logging middleware
 app.middleware("http")(logging_middleware)
