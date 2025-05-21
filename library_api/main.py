@@ -22,9 +22,6 @@ app = FastAPI(title="Library API",
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Add HTTPS redirect middleware
-app.add_middleware(HTTPSRedirectMiddleware)
-
 # Configure CORS
 # Get frontend URLs from environment variables
 FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
