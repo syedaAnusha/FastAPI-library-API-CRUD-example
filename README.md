@@ -11,6 +11,7 @@ For more information about FastAPI, visit the [official documentation](https://f
 - CORS support for frontend integration
 - Request logging and timing middleware
 - Swagger UI documentation
+- Rate limiting protection using slowapi (100 requests/minute for list operations, 50 requests/minute for single book operations)
 
 ## Project Structure
 
@@ -62,16 +63,16 @@ The API will be available at `http://127.0.0.1:8001/`
 
 ## API Endpoints
 
-| Method | Endpoint                     | Description                                        |
-| ------ | ---------------------------- | -------------------------------------------------- |
-| POST   | `/books/`                    | Create a new book                                  |
-| GET    | `/books/`                    | Get all books                                      |
-| GET    | `/books/{book_id}`           | Get a specific book by ID                          |
-| PUT    | `/books/{book_id}`           | Update a book                                      |
-| DELETE | `/books/{book_id}`           | Delete a book                                      |
-| GET    | `/books/sort/{sort_by}`      | Get books sorted by field (year, author, or title) |
-| GET    | `/books/category/{category}` | Get all books in a specific category               |
-| GET    | `/books/search/{title}`      | Search books by title                              |
+| Method | Endpoint                     | Description                                         |
+| ------ | ---------------------------- | --------------------------------------------------- |
+| POST   | `/books/`                    | Create a new book                                   |
+| GET    | `/books/`                    | Get paginated books (query params: page, page_size) |
+| GET    | `/books/{book_id}`           | Get a specific book by ID                           |
+| PUT    | `/books/{book_id}`           | Update a book                                       |
+| DELETE | `/books/{book_id}`           | Delete a book                                       |
+| GET    | `/books/sort/{sort_by}`      | Get books sorted by field (year, author, or title)  |
+| GET    | `/books/category/{category}` | Get all books in a specific category                |
+| GET    | `/books/search/{title}`      | Search books by title                               |
 
 ## Data Model
 
@@ -107,3 +108,4 @@ Once the server is running, you can access:
 - psycopg2-binary
 - python-dotenv
 - supabase
+- slowapi

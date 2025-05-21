@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional, Tuple, List
@@ -6,10 +6,20 @@ from pydantic import BaseModel
 from .models import Book, BookCreate, PaginatedResponse, CategoryResponse
 from .crud import create_book, get_all_books, get_book_by_id, update_book, delete_book, get_sorted_books, get_books_by_category, search_books
 from .middleware import logging_middleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(title="Library API",
              description="A simple REST API for managing a library's book collection")
+
+# Add rate limiter to the application
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configure CORS
 # Get frontend URLs from environment variables
@@ -26,6 +36,8 @@ app.add_middleware(
 
 # Add custom logging middleware
 app.middleware("http")(logging_middleware)
+
+
 
 @app.get("/")
 async def root():
@@ -58,20 +70,27 @@ def create_book_endpoint(book_item: BookCreate):
     return create_book(book_item)
 
 @app.get("/books/", response_model=PaginatedResponse)
-def read_books(
+@limiter.limit("100/minute")  # Rate limit: 100 requests per minute
+async def read_books(
+    request: Request,  # Required for rate limiting
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Items per page")
 ):
     """
     Retrieve books from the database with pagination.
+    Rate limited to 100 requests per minute.
+    Results are cached for 60 seconds.
     """
     books, total = get_all_books(page, page_size)
     return PaginatedResponse(books=books, total=total)
 
 @app.get("/books/{book_id}", response_model=Book)
-def read_book(book_id: int):
+@limiter.limit("50/minute")  # Rate limit: 50 requests per minute
+async def read_book(request: Request, book_id: int):
     """
     Retrieve a book by its ID.
+    Rate limited to 50 requests per minute.
+    Results are cached for 5 minutes.
     """
     book = get_book_by_id(book_id)
     if not book:
