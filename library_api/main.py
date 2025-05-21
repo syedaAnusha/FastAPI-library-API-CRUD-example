@@ -10,10 +10,12 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import os
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
+
+# Check if we're in production
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development") == "production"
 
 app = FastAPI(title="Library API",
              description="A simple REST API for managing a library's book collection")
@@ -22,8 +24,22 @@ app = FastAPI(title="Library API",
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Configure CORS and Security
-# Get frontend URLs from environment variables or use default
+# Custom middleware to handle HTTPS redirects
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import RedirectResponse
+
+class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if IS_PRODUCTION and request.url.scheme == "http":
+            url = str(request.url.replace(scheme="https"))
+            return RedirectResponse(url, status_code=308)
+        return await call_next(request)
+
+# Add HTTPS redirect middleware in production
+if IS_PRODUCTION:
+    app.add_middleware(HTTPSRedirectMiddleware)
+
+# Configure CORS
 FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
 origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 
@@ -33,13 +49,7 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=[
-        "Content-Type",
-        "Authorization",
-        "Accept",
-        "Origin",
-        "X-Requested-With"
-    ],
+    allow_headers=["*"],
     expose_headers=["*"],
     max_age=86400,
 )
