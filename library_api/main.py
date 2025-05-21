@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query, Request
-#from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional, Tuple, List
 from pydantic import BaseModel
@@ -18,12 +17,8 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Library API",
              description="A simple REST API for managing a library's book collection")
 
-
 FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
 origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
-# Since Railway handles HTTPS, we don't need custom HTTPS redirect middleware
-# Just configure CORS properly
-
 
 # Configure CORS
 app.add_middleware(
