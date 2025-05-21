@@ -10,6 +10,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import os
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -21,20 +22,23 @@ app = FastAPI(title="Library API",
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Add HTTPS redirect middleware
+app.add_middleware(HTTPSRedirectMiddleware)
+
 # Configure CORS
 # Get frontend URLs from environment variables
 FRONT_END_URLS = os.getenv("ALLOWED_ORIGINS").split(',')
 origins = [url.strip() for url in FRONT_END_URLS if url.strip()]
 
+# Add CORS middleware with specific configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-    expose_headers=["*"],  # Expose all headers
-    max_age=600,  # Cache preflight requests for 10 minutes
-    allow_origin_regex=None  # Optional: Add if you need dynamic origin matching
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=False,  # Set to False when allow_origins=["*"]
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["Content-Type", "Authorization"],
+    max_age=86400,  # Cache preflight requests for 24 hours
 )
 
 # Add custom logging middleware
