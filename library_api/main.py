@@ -133,7 +133,7 @@ def search_books_endpoint(title: str):
 async def read_books(
     request: Request,  # Required for rate limiting
     page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(12, ge=1, le=100, description="Items per page")
+    page_size: int = Query(10, ge=1, le=100, description="Items per page")
 ):
     """
     Retrieve books from the database with pagination.

@@ -10,7 +10,7 @@ def create_book(book_item: BookCreate) -> Book:
     result = supabase.table('books').insert(data).execute()
     return Book(**result.data[0])
 
-def get_all_books(page: int = 1, page_size: int = 12) -> Tuple[List[Book], int]:
+def get_all_books(page: int = 1, page_size: int = 10) -> Tuple[List[Book], int]:
     """
     Retrieve books from the database with pagination.
     Args:
