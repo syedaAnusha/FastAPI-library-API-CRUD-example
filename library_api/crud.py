@@ -109,7 +109,12 @@ def search_books_combined(
         desc_order (bool): Sort in descending order if True
     Returns:
         List[Book]: List of books matching the criteria
+        Returns empty list if no search criteria are provided
     """
+    # Return empty list if no search criteria are provided
+    if not any([title, category, sort_by]):
+        return []
+        
     valid_sort_fields = {
         'year': 'published_year',
         'author': 'author',
