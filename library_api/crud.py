@@ -10,7 +10,7 @@ def create_book(book_item: BookCreate) -> Book:
     result = supabase.table('books').insert(data).execute()
     return Book(**result.data[0])
 
-def get_all_books(page: int = 1, page_size: int = 10) -> Tuple[List[Book], int]:
+def get_all_books(page: int = 1, page_size: int = 12) -> Tuple[List[Book], int]:
     """
     Retrieve books from the database with pagination.
     Args:
@@ -92,4 +92,47 @@ def search_books(title: str) -> List[Book]:
     Search books by title
     """
     result = supabase.table('books').select('*').ilike('title', f'%{title}%').execute()
+    return [Book(**book) for book in result.data]
+
+def search_books_combined(
+    title: Optional[str] = None,
+    category: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    desc_order: bool = False
+) -> List[Book]:
+    """
+    A unified search function that combines sorting, category filtering, and title search
+    Args:
+        title (Optional[str]): Search books by title (case-insensitive)
+        category (Optional[str]): Filter books by category
+        sort_by (Optional[str]): Sort by 'year', 'author', or 'title'
+        desc_order (bool): Sort in descending order if True
+    Returns:
+        List[Book]: List of books matching the criteria
+    """
+    valid_sort_fields = {
+        'year': 'published_year',
+        'author': 'author',
+        'title': 'title'
+    }
+
+    # Start with base query
+    query = supabase.table('books').select('*')
+
+    # Apply title search if provided
+    if title:
+        query = query.ilike('title', f'%{title}%')
+
+    # Apply category filter if provided
+    if category:
+        query = query.eq('category', category)
+
+    # Apply sorting if provided
+    if sort_by:
+        if sort_by not in valid_sort_fields:
+            raise ValueError(f"Invalid sort field. Must be one of: {', '.join(valid_sort_fields.keys())}")
+        order = valid_sort_fields[sort_by]
+        query = query.order(order, desc=desc_order)
+
+    result = query.execute()
     return [Book(**book) for book in result.data]
