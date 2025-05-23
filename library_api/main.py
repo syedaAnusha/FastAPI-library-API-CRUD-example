@@ -5,8 +5,7 @@ from typing import Optional, Tuple, List
 from pydantic import BaseModel
 from .models import Book, BookCreate, PaginatedResponse, CategoryResponse
 from .crud import (
-    create_book, get_all_books, get_book_by_id, update_book, delete_book,
-    get_sorted_books, get_books_by_category, search_books, search_books_combined
+    create_book, get_book_by_id, update_book, delete_book, get_all_books
 )
 from .middleware import logging_middleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -52,16 +51,12 @@ async def root():
         "version": "1.0.0",
         "documentation": "/docs",
         "endpoints": {
-            "books": {
-                "list_books": "GET /books/",
+            "books": {                
+                "list_books": "GET /books/combined",
                 "create_book": "POST /books/",
                 "get_book": "GET /books/{book_id}",
                 "update_book": "PUT /books/{book_id}",
-                "delete_book": "DELETE /books/{book_id}",                
-                "sort_books": "GET /books/sort/{sort_by}",
-                "books_by_category": "GET /books/category/{category}",
-                "search_books": "GET /books/search/basic/{title}",
-                "advanced_search": "GET /books/advanced"
+                "delete_book": "DELETE /books/{book_id}"
             }
         }
     })
@@ -73,10 +68,12 @@ def create_book_endpoint(book_item: BookCreate):
     """
     return create_book(book_item)
 
-@app.get("/books/combined")
+@app.get("/books/combined", response_model=PaginatedResponse)
 @limiter.limit("50/minute")
-async def search_books_combined_endpoint(
+async def get_all_books_combined(
     request: Request,
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
     title: Optional[str] = Query(None, description="Search by title (case-insensitive)"),
     category: Optional[str] = Query(None, description="Filter by category"),
     sort_by: Optional[str] = Query(None, description="Sort by 'year', 'author', or 'title'"),
@@ -84,64 +81,25 @@ async def search_books_combined_endpoint(
 ):
     """
     Unified search endpoint that combines:
+    - Pagination
     - Title search
     - Category filtering
-    - Sorting by year, author, or title
+    - Sorting by year, author, or title (defaults to title)
     All parameters are optional, allowing for flexible querying.
     Rate limited to 50 requests per minute.
     """
     try:
-        return search_books_combined(
+        books, total = get_all_books(
+            page=page,
+            page_size=page_size,
             title=title,
             category=category,
             sort_by=sort_by,
             desc_order=desc
         )
+        return PaginatedResponse(books=books, total=total)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/books/sort/{sort_by}")
-def get_sorted_books_endpoint(
-    sort_by: str,
-    desc: bool = Query(False, description="Sort in descending order")
-):
-    """
-    Get books sorted by specified field (year, author, or title)
-    """
-    try:
-        return get_sorted_books(sort_by, desc)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/books/category/{category}", response_model=CategoryResponse)
-def get_books_by_category_endpoint(category: str):
-    """
-    Get all books in a specific category and their count
-    """
-    books, count = get_books_by_category(category)
-    return CategoryResponse(books=books, total=count)
-
-@app.get("/books/search/basic/{title}")
-def search_books_endpoint(title: str):
-    """
-    Basic search by title only
-    """
-    return search_books(title)
-
-@app.get("/books/", response_model=PaginatedResponse)
-@limiter.limit("100/minute")  # Rate limit: 100 requests per minute
-async def read_books(
-    request: Request,  # Required for rate limiting
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(10, ge=1, le=100, description="Items per page")
-):
-    """
-    Retrieve books from the database with pagination.
-    Rate limited to 100 requests per minute.
-    Results are cached for 60 seconds.
-    """
-    books, total = get_all_books(page, page_size)
-    return PaginatedResponse(books=books, total=total)
 
 @app.get("/books/{book_id}", response_model=Book)
 @limiter.limit("50/minute")  # Rate limit: 50 requests per minute
@@ -175,31 +133,3 @@ def delete_book_endpoint(book_id: int):
     if not success:
         raise HTTPException(status_code=404, detail="Book not found")
     return {"message": "Book deleted successfully"}
-
-@app.get("/books/sort/{sort_by}")
-def get_sorted_books_endpoint(
-    sort_by: str,
-    desc: bool = Query(False, description="Sort in descending order")
-):
-    """
-    Get books sorted by specified field (year, author, or title)
-    """
-    try:
-        return get_sorted_books(sort_by, desc)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/books/category/{category}", response_model=CategoryResponse)
-def get_books_by_category_endpoint(category: str):
-    """
-    Get all books in a specific category and their count
-    """
-    books, count = get_books_by_category(category)
-    return CategoryResponse(books=books, total=count)
-
-@app.get("/books/search/{title}")
-def search_books_endpoint(title: str):
-    """
-    Basic search by title only
-    """
-    return search_books(title)
